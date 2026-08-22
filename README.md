@@ -12,6 +12,7 @@ Writeups for [Hack The Box](https://www.hackthebox.com/) machines I've completed
 | [Fluffy](fluffy-writeup.md) | Windows (AD / DC) | Medium | CVE-2025-24071 `.library-ms` NTLM leak, nested-group ACL abuse, Shadow Credentials, ADCS ESC16 (CA-wide disabled Security Extension) |
 | [Nexus](nexus-writeup.md) | Linux | Easy (rated) / Medium (practice) | Vhost fuzzing, Git history secret mining, authenticated file upload RCE, path traversal via hand-crafted Git objects |
 | [PermX](permx-writeup.md) ⚠️ | Linux | Easy | Chamilo LMS unauthenticated big-upload RCE (CVE-2023-4220) |
+| [Puppy](puppy-writeup.md) | Windows (AD / DC) | Medium | BloodHound-guided GenericWrite/GenericAll ACL abuse chain, KDBX4 KeePass cracking, credential spraying, backup-archive credential leakage, DPAPI masterkey/credential decryption |
 | [Signed](signed-writeup.md) | Windows (AD / DC) | Medium | MSSQL `xp_dirtree` NTLM coercion, RID brute-forcing, Kerberos silver ticket forgery, `OPENROWSET(BULK)` file-read-as-Domain-Admin via ticket group injection |
 
 ⚠️ = incomplete — see note below.
