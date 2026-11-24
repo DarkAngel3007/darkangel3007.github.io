@@ -1,0 +1,6 @@
+.boxinfo{border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin:0 0 24px;
+  background:var(--code-bg);display:flex;flex-wrap:wrap;gap:10px 22px;align-items:baseline;font-size:15px}
+.boxinfo span{white-space:nowrap}
+.boxinfo strong{color:var(--secondary);font-weight:600;margin-right:6px;text-transform:uppercase;
+  font-size:12px;letter-spacing:.04em}
+.boxinfo-tech{flex-basis:100%;border-top:1px solid var(--border);padding-top:10px;line-height:1.5}

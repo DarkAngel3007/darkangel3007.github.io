@@ -1,0 +1,7 @@
+<div class="boxinfo">
+  {{- with .Get "os" }}<span><strong>OS</strong> {{ . }}</span>{{ end -}}
+  {{- with .Get "difficulty" }}<span><strong>Difficulty</strong> {{ . }}</span>{{ end -}}
+  {{- with .Get "type" }}<span><strong>Type</strong> {{ . }}</span>{{ end -}}
+  {{- with .Get "released" }}<span><strong>Released</strong> {{ . }}</span>{{ end -}}
+  {{- with .Get "techniques" }}<div class="boxinfo-tech"><strong>Techniques</strong> {{ . }}</div>{{ end -}}
+</div>

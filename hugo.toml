@@ -1,0 +1,92 @@
+# Hugo configuration for the HTB writeups site (PaperMod theme).
+# baseURL is the ONLY line that depends on where the site is hosted — see README-site.md.
+baseURL = "https://darkangel3007.github.io/HTB-Writeups/"
+languageCode = "en-us"
+title = "darkangel3007 — HTB Writeups"
+theme = "PaperMod"
+
+enableGitInfo = true          # use git commit dates as fallback "last modified"
+enableRobotsTXT = true
+pygmentsUseClasses = true      # syntax highlighting via CSS classes (theme-aware)
+
+[pagination]
+  pagerSize = 15
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]   # JSON feeds PaperMod's built-in search
+
+[markup.highlight]
+  noClasses = false
+  lineNos = true
+  tabWidth = 4
+
+[markup.goldmark.renderer]
+  unsafe = true                # allow the box-info HTML/shortcode inside content
+
+# Mounts: declaring any mount replaces ALL defaults, so the standard set is repeated
+# here. The last entry serves the existing ./images folder at /images without copying it.
+[[module.mounts]]
+  source = "content"
+  target = "content"
+[[module.mounts]]
+  source = "layouts"
+  target = "layouts"
+[[module.mounts]]
+  source = "static"
+  target = "static"
+[[module.mounts]]
+  source = "assets"
+  target = "assets"
+[[module.mounts]]
+  source = "data"
+  target = "data"
+[[module.mounts]]
+  source = "i18n"
+  target = "i18n"
+[[module.mounts]]
+  source = "archetypes"
+  target = "archetypes"
+[[module.mounts]]
+  source = "images"
+  target = "static/images"
+
+[params]
+  defaultTheme = "auto"        # follow the visitor's light/dark preference
+  ShowReadingTime = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowToc = true
+  TocOpen = false
+  ShowPostNavLinks = true
+  ShowWordCount = false
+  description = "Hack The Box machine, challenge and fortress writeups."
+
+  [params.homeInfoParams]
+    Title = "HTB Writeups"
+    Content = "Walkthroughs of Hack The Box machines, challenges and fortresses — recon through to root."
+
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/darkangel3007/HTB-Writeups"
+
+[menu]
+  [[menu.main]]
+    identifier = "machines"
+    name = "Machines"
+    url = "/tags/machine/"
+    weight = 10
+  [[menu.main]]
+    identifier = "challenges"
+    name = "Challenges"
+    url = "/tags/challenge/"
+    weight = 20
+  [[menu.main]]
+    identifier = "tags"
+    name = "Tags"
+    url = "/tags/"
+    weight = 30
+  [[menu.main]]
+    identifier = "search"
+    name = "Search"
+    url = "/search/"
+    weight = 40
