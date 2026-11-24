@@ -1,33 +1,12 @@
 # HTB Writeups
 
-Writeups for [Hack The Box](https://www.hackthebox.com/) machines I've completed, covering recon through to root/system.
+Hack The Box machine, challenge and fortress writeups — recon through to root.
 
-## Machines
+### 🔗 Live site: **https://darkangel3007.github.io/**
 
-| Machine | OS | Difficulty | Techniques |
-|---|---|---|---|
-| [Blackfield](blackfield-writeup.md) | Windows (AD / DC) | Hard | SMB null session enum, AS-REP roasting, BloodHound DACL abuse, LSASS dump, `SeBackupPrivilege`, VSC `ntds.dit` extraction, pass-the-hash |
-| [Blue](blue-writeup.md) | Windows | Easy | MS17-010 (EternalBlue) |
-| [Certified](certified-writeup.md) | Windows (AD) | Medium | ACL abuse (WriteOwner → DACL write), Shadow Credentials, ADCS ESC9 (No Security Extension) |
-| [Fluffy](fluffy-writeup.md) | Windows (AD / DC) | Medium | CVE-2025-24071 `.library-ms` NTLM leak, nested-group ACL abuse, Shadow Credentials, ADCS ESC16 (CA-wide disabled Security Extension) |
-| [Nexus](nexus-writeup.md) | Linux | Easy (rated) / Medium (practice) | Vhost fuzzing, Git history secret mining, authenticated file upload RCE, path traversal via hand-crafted Git objects |
-| [PermX](permx-writeup.md) ⚠️ | Linux | Easy | Chamilo LMS unauthenticated big-upload RCE (CVE-2023-4220) |
-| [Puppy](puppy-writeup.md) | Windows (AD / DC) | Medium | BloodHound-guided GenericWrite/GenericAll ACL abuse chain, KDBX4 KeePass cracking, credential spraying, backup-archive credential leakage, DPAPI masterkey/credential decryption |
-| [Shocker](shocker-writeup.md) | Linux | Easy | Shellshock (CVE-2014-6271) CGI RCE via HTTP header, `sudo perl` NOPASSWD privilege escalation |
-| [Signed](signed-writeup.md) | Windows (AD / DC) | Medium | MSSQL `xp_dirtree` NTLM coercion, RID brute-forcing, Kerberos silver ticket forgery, `OPENROWSET(BULK)` file-read-as-Domain-Admin via ticket group injection |
+Browse, search and filter by tag on the site. Built with [Hugo](https://gohugo.io/) and the
+[PaperMod](https://github.com/adityatelange/hugo-PaperMod) theme; writeups live in
+`content/posts/<name>/index.md`. See [`README-site.md`](README-site.md) for building locally and
+adding new writeups.
 
-⚠️ = incomplete — see note below.
-
-## Challenges
-
-| Challenge | Category | Difficulty | Techniques |
-|---|---|---|---|
-| [Bypass](bypass-writeup.md) | Reversing | Easy | .NET/Mono binary identification, IL disassembly/reassembly (`monodis`/`ilasm`), IL-level logic patching |
-
-## Structure
-
-Machine writeups generally follow: Overview → Recon → per-service enumeration/exploitation → User → Privilege Escalation → Summary of Techniques → Lessons/Takeaways. Earlier writeups are less formally structured.
-
-## Known Gaps
-
-- **PermX**: the steps between finding the CVE-2023-4220 Chamilo file upload vulnerability and recovering the SSH credential for `mtz` are missing from the write-up and need to be filled in.
+> Only **retired** HTB content is published here. Active-box and fortress writeups are kept private.
