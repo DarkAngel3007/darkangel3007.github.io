@@ -6,9 +6,24 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Nexus starts with a mostly static landing page that hides two virtual hosts behind it — a Gitea instance and a Krayin CRM billing portal. Digging through Git commit history reveals a database password that was blanked out in the current version of a config file but still present in an earlier commit. That password, combined with an email address scraped from a job advert on the main site, gets us into the Krayin CRM admin panel. From there, an authenticated file upload vulnerability (CVE-2026-38526) in the TinyMCE rich-text editor gives code execution as `www-data`. A second, freshly rotated credential found in the live `.env` file on disk gets us SSH access as `jones`. Privilege escalation to root abuses a custom systemd timer that recursively copies "template" Git repositories into a staging directory without sanitizing `..` path components — by hand-crafting raw Git objects (bypassing Gitea's UI-level filename validation entirely), we plant an SSH key at `/root/.ssh/authorized_keys`.
+
+## Skills Required
+
+- Web enumeration and virtual host fuzzing.
+- Reading Git commit history for leaked secrets.
+- Navigating web-app admin panels.
+- Basic Linux privilege escalation via scheduled jobs.
+
+## Skills Learned
+
+- Mining secrets from old Git commits that were blanked in the current version.
+- Authenticated file-upload RCE via the TinyMCE editor (CVE-2026-38526).
+- Credential reuse from a live on-disk `.env` file.
+- Abusing an unsanitized systemd template-sync timer by hand-crafting raw Git objects (bypassing Gitea's UI filename validation) to plant `authorized_keys`.
+
 
 ![placeholder: nmap scan results]
 

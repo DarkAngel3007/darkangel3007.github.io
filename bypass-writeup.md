@@ -6,17 +6,30 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Bypass is a small Windows console application gating a flag behind two sequential checks: a username/password prompt, followed by a secret-key prompt. Static decompilation showed the first check was hardcoded to always fail regardless of input, and the second performed a real string comparison against a value that wasn't easily recoverable statically. Both were solved not by finding the correct credentials, but by patching the compiled IL bytecode directly — first to force the always-false check to return `true`, then to strip out the conditional branch on the secret-key comparison so any input is accepted.
 
+## Skills Required
+
+- Basic .NET / Mono internals.
+- Reading Common Intermediate Language (IL).
+- Using a .NET decompiler (ILSpy).
+
+## Skills Learned
+
+- Identifying a Mono/.NET binary and decompiling it.
+- Disassembling and reassembling IL with `monodis` / `ilasm`.
+- Patching IL logic directly — forcing an always-false check to return `true`, and stripping a conditional branch so any secret key is accepted.
+
+
 ---
 
-## Files Provided
+## Initial Analysis
 
 A single zip containing `Bypass.exe`.
 
-## Identifying the Binary
+### Identifying the Binary
 
 ```bash
 file Bypass.exe
@@ -30,7 +43,7 @@ Confirmed as a .NET/Mono assembly rather than native x86 — the right tool here
 
 ---
 
-## Static Analysis (ILSpy)
+### Static Analysis (ILSpy)
 
 Opening `Bypass.exe` in ILSpy showed a single class with heavily obfuscated (purely numeric) class, method, and field names — no `Main`, no meaningful identifiers anywhere. The entry-point-looking method had this shape:
 
@@ -54,7 +67,7 @@ String literals rendered oddly as dotted decimals (e.g. `5.1`, `5.3`) — this t
 
 ---
 
-## Dynamic Analysis
+### Dynamic Analysis
 
 Running the binary directly confirmed the static read:
 
@@ -72,7 +85,9 @@ No input combination succeeded — consistent with method `1()`'s return value b
 
 ---
 
-## Patch 1 — Bypassing the Username/Password Check
+## Solution
+
+### Patch 1 — Bypassing the Username/Password Check
 
 Disassembled the binary to IL text:
 
@@ -96,7 +111,7 @@ IL_0028:  ret
 
 ---
 
-## Reassembly Obstacles
+### Reassembly Obstacles
 
 `ilasm` (the IL assembler, part of `mono-complete`) refused to reassemble the raw `monodis` output as-is, due to the obfuscation's numeric-only identifiers colliding with `ilasm`'s grammar for raw metadata tokens (e.g. `class 5::0()` was ambiguously parsed). Each bare-digit identifier — class names, method names, field names, and parameter names — had to be wrapped in single quotes (e.g. `class '5'::'0'()`) throughout the `.il` file to disambiguate them as identifiers.
 
@@ -116,7 +131,7 @@ Testing confirmed the username/password check now always passed, advancing to th
 
 ---
 
-## Patch 2 — Bypassing the Secret-Key Check
+### Patch 2 — Bypassing the Secret-Key Check
 
 Method `2()`'s IL:
 

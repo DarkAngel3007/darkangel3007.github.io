@@ -6,13 +6,26 @@
 
 ---
 
-## Overview
+## Synopsis
 
 PermX hosts a Chamilo LMS instance on a discovered virtual host (`lms.permx.htb`), vulnerable to CVE-2023-4220 — an unauthenticated arbitrary file upload flaw. *(Note: the original engagement notes for this box did not capture the exact exploitation steps used to turn that vulnerability into a credential — only the recovered credential itself and its result are documented below.)* That credential grants SSH access as `mtz`. Privilege escalation abuses a custom `sudo`-permitted script, `/opt/acl.sh`, which sets file ACLs on files under `/home/mtz/` without properly validating symlinks — pointing it at a symlink to `/etc/sudoers` grants write access to the sudoers file itself, and root follows directly.
 
+## Skills Required
+
+- Web enumeration and virtual host fuzzing.
+- Recognizing known-CVE web applications (Chamilo LMS).
+- Linux `sudo`/ACL privilege-escalation concepts.
+- Symlink abuse.
+
+## Skills Learned
+
+- Chamilo LMS unauthenticated file-upload RCE (CVE-2023-4220).
+- Abusing a `sudo`-permitted ACL script that fails to validate symlinks — pointing it at a symlink to `/etc/sudoers` to gain write access and escalate to root.
+
+
 ---
 
-## Recon
+## Enumeration
 
 ### Nmap (IP)
 

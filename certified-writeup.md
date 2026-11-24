@@ -6,9 +6,22 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Certified is an "assumed breach" Active Directory box — no initial foothold hunting is required, as low-privilege domain credentials are provided up front. BloodHound reveals an ACL abuse chain: the starting user has `WriteOwner` over the `Management` group, which in turn has `GenericWrite` over the `management_svc` service account. Taking ownership of the group, granting membership rights, and joining it unlocks a Shadow Credentials attack against `management_svc`, yielding a shell and the user flag. From there, `management_svc` has `GenericAll` over a `ca_operator` account, which is itself the only enrollable principal on a vulnerable ADCS certificate template (`CertifiedAuthentication`) suffering from ESC9 — no security extension embedded in issued certificates. Changing `ca_operator`'s UPN to `Administrator`, requesting a certificate from that template, and authenticating with it yields the domain Administrator's NTLM hash and full control of the box.
+
+
+## Skills Required
+
+- Assumed-breach Active Directory enumeration with BloodHound.
+- Reading and abusing ACLs (`WriteOwner`, `GenericWrite`, `GenericAll`).
+- Active Directory Certificate Services concepts and certificate authentication.
+
+## Skills Learned
+
+- Chaining `WriteOwner` -> DACL write -> group membership to abuse a nested ACL path.
+- Shadow Credentials (`msDS-KeyCredentialLink`) to obtain a certificate and authenticate as a target account.
+- AD CS **ESC9** (no security extension) abused via UPN manipulation to recover the domain Administrator's NTLM hash.
 
 
 ---
@@ -117,7 +130,7 @@ The name `ca_operator` was a strong hint that this account was tied into Active 
 
 ---
 
-## User — Abusing WriteOwner → GenericWrite (management_svc)
+## Foothold — Abusing WriteOwner → GenericWrite (management_svc)
 
 ### Step 1: Take ownership of the Management group
 
@@ -325,14 +338,14 @@ Mode                LastWriteTime         Length Name
 
 
 *Evil-WinRM* PS C:\Users\management_svc\desktop> type user.txt
-cf609e152912021666f19edb83649462
+<redacted>
 ```
 
 `user.txt` retrieved.
 
 ---
 
-## Root — GenericAll over ca_operator → ADCS ESC9
+## Privilege Escalation — GenericAll over ca_operator → ADCS ESC9
 
 ### Step 1: Shadow Credentials attack against ca_operator
 
@@ -545,7 +558,7 @@ Mode                LastWriteTime         Length Name
 
 
 *Evil-WinRM* PS C:\Users\Administrator\Desktop> type root.txt
-5e4e470491c6f84643d762578be4cf39
+<redacted>
 ```
 
 `root.txt` retrieved.

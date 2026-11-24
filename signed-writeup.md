@@ -11,13 +11,29 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Signed is an "assume breach" Windows Domain Controller box, seeded with credentials for a local MSSQL login (`scott`). `scott` has only `guest`-level access, but is able to abuse `xp_dirtree` to coerce the domain service account `mssqlsvc` into authenticating to an attacker-controlled listener, leaking a crackable NetNTLMv2 hash. Once cracked, `mssqlsvc`'s domain credentials authenticate to MSSQL directly, but only at `guest` level too — the real privilege comes from RID-brute-forcing the domain to find a custom `IT` group (RID 1105), then forging a Kerberos **silver ticket** for the `MSSQLSvc/DC01.signed.htb:1433` SPN using `mssqlsvc`'s own NT hash, claiming membership in that `IT` group. That ticket grants `dbo`/sysadmin rights in SQL Server, which is then used to enable `xp_cmdshell` and get a PowerShell reverse shell as `mssqlsvc`, yielding the user flag.
 
 Root is obtained without ever needing a privileged OS-level shell. A **second** silver ticket is forged for the same `mssqlsvc` identity, this time injecting both the `IT` group (RID 1105, for `dbo` access) and the built-in **Domain Admins** group (RID 512). MSSQL has an undocumented quirk: when the connecting login's identity matches the account MSSQL itself runs as, `OPENROWSET(BULK ...)` file reads honor the *extra group SIDs asserted in that Kerberos ticket* rather than the OS-level permissions of the spawned `xp_cmdshell` process. This lets `mssqlsvc` — who still can't read Administrator's files via `xp_cmdshell` — pull `C:\Users\Administrator\Desktop\root.txt` straight off disk through a plain `SELECT ... FROM OPENROWSET(...)` query.
 
 A Chisel reverse SOCKS tunnel was also set up to reach internal-only services (SMB, WinRM, DNS, Kerberos, LDAP) that aren't exposed externally, with the goal of turning this file-read primitive into a full interactive Administrator/SYSTEM shell (e.g. recovering Administrator's plaintext password from PowerShell history, or an NTLM-relay/coercion route through the now-reachable DNS/SMB services). That follow-on work is still in progress — see "Outstanding" at the end.
+
+## Skills Required
+
+- MSSQL enumeration and abuse.
+- NTLM / NetNTLMv2 coercion and offline cracking.
+- Kerberos ticket concepts (silver tickets, SPNs).
+- SOCKS tunnelling / pivoting.
+
+## Skills Learned
+
+- Coercing a service account's NetNTLMv2 hash via `xp_dirtree`.
+- RID brute-forcing the domain to discover a privileged custom group.
+- Forging a Kerberos silver ticket with injected group membership to gain `sysadmin` in SQL Server.
+- Enabling `xp_cmdshell` for RCE and pivoting with a Chisel reverse SOCKS tunnel.
+- Reading the root flag as Domain Admin via `OPENROWSET(BULK)`.
+
 
 ---
 
@@ -272,7 +288,7 @@ signed\mssqlsvc
 
 ```
 PS C:\Users\mssqlsvc\Desktop> type user.txt
-7970c5d116f77507b4b469c04f56b0ae
+<redacted>
 ```
 
 ![placeholder: reverse shell landing / user.txt]
@@ -319,7 +335,7 @@ Confirms: SMB (445), Kerberos (88), LDAP(S), and WinRM HTTPS (5986) are all list
 
 ---
 
-## Root — `OPENROWSET(BULK)` File Read as Domain Admin
+## Privilege Escalation — `OPENROWSET(BULK)` File Read as Domain Admin
 
 ### The idea
 
@@ -371,10 +387,10 @@ SQL (SIGNED\mssqlsvc  dbo@master)> select * from OPENROWSET(BULK 'C:\Users\Admin
 
 BulkColumn
 ----------------------------------
-b1dd26c580bf15be0ac1502b87b40825
+<redacted>
 ```
 
-**Root flag:** `b1dd26c580bf15be0ac1502b87b40825`
+**Root flag:** `<redacted>`
 
 ### Troubleshooting note — inconsistent file access
 
@@ -417,8 +433,8 @@ mssqlsvc:purPLE9795!@     (cracked NetNTLMv2, domain account)
 | `Domain Admins` group RID | 512 |
 | MSSQL SPN | `MSSQLSvc/DC01.signed.htb:1433` |
 | `mssqlsvc` NT hash | `ef699384c3285c54128a3ee1ddb1a0cc` |
-| `user.txt` | `7970c5d116f77507b4b469c04f56b0ae` |
-| `root.txt` | `b1dd26c580bf15be0ac1502b87b40825` |
+| `user.txt` | `<redacted>` |
+| `root.txt` | `<redacted>` |
 
 ---
 

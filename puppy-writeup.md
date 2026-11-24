@@ -7,9 +7,25 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Puppy is an assumed-breach Active Directory box: the engagement starts with a single set of valid domain credentials (`levi.james`) rather than an unauthenticated foothold. BloodHound reveals `levi.james` sits in the **HR** group, which has `GenericWrite` over the **Developers** group. Adding ourselves to Developers unlocks a `DEV` SMB share containing a KeePass 2 (KDBX4) database, which is cracked offline to recover five more sets of credentials. Spraying those against all domain users lands on `ant.edwards`, who — per BloodHound — has `GenericAll` over `adam.silver`. A password reset (plus clearing the `ACCOUNTDISABLE` flag the reset trips) grants WinRM as `adam.silver`. From there, a website backup archive in `C:\Backups` contains an old LDAP-auth config file with a plaintext bind password for `steph.cooper`, giving WinRM as that user. Finally, DPAPI-protected Credential Manager secrets stored under `steph.cooper`'s profile are decrypted (masterkey + credential blob) to recover `steph.cooper_adm`'s password — a member of Administrators.
+
+## Skills Required
+
+- Assumed-breach Active Directory enumeration with BloodHound.
+- Reading ACL edges (`GenericWrite`, `GenericAll`).
+- KeePass / KDBX cracking and password spraying.
+- DPAPI credential concepts.
+
+## Skills Learned
+
+- `GenericWrite` group-membership abuse to unlock a restricted share.
+- Cracking a KDBX4 KeePass database offline.
+- `GenericAll` password reset plus clearing the `ACCOUNTDISABLE` flag the reset trips.
+- Harvesting plaintext LDAP bind credentials from a website backup archive.
+- Decrypting DPAPI-protected Credential Manager secrets (masterkey + credential blob).
+
 
 ---
 
@@ -156,7 +172,7 @@ Ingesting into BloodHound CE showed `levi.james` is a member of **HR**, and **HR
 
 ---
 
-## Initial Access — GenericWrite Abuse
+## Foothold — Initial Access via GenericWrite Abuse
 
 `GenericWrite` on a group maps to write access on its `member` attribute — i.e., the ability to add/remove members. Since `levi.james` already authenticates over SMB (which carries SAMR), the classic Samba `net rpc` tooling was used to add `levi.james` to Developers directly:
 
@@ -432,7 +448,7 @@ Mode                 LastWriteTime         Length Name
 -ar---         8/22/2026   6:50 PM             34 user.txt
 
 *Evil-WinRM* PS C:\Users\adam.silver\Desktop> type user.txt
-c68f16a993977694c284daaf860a6e67
+<redacted>
 ```
 
 ---
@@ -630,7 +646,7 @@ BUILTIN\Users                              Alias            S-1-5-32-545 Mandato
 
 ```
 *Evil-WinRM* PS C:\Users\administrator\desktop> type root.txt
-ddcc9a265941617d326a239a33d5b2d6
+<redacted>
 ```
 
 ---

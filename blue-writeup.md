@@ -6,13 +6,25 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Blue is an unpatched Windows 7 SP1 host vulnerable to MS17-010 (EternalBlue). A single Metasploit exploit against the SMB service grants a SYSTEM-level Meterpreter session directly — no separate privilege escalation step is required, so both flags are retrieved from the same shell.
 
+## Skills Required
+
+- SMB service enumeration.
+- Recognizing MS17-010 (EternalBlue) from service/version fingerprints.
+- Basic Metasploit usage.
+
+## Skills Learned
+
+- Identifying and exploiting MS17-010 (EternalBlue) for remote SYSTEM-level code execution over SMB.
+- Understanding why a kernel-level SMB exploit lands directly as `NT AUTHORITY\SYSTEM`, needing no separate privilege escalation.
+
+
 ---
 
-## Recon
+## Enumeration
 
 ### Nmap
 
@@ -64,7 +76,7 @@ Only SMB/RPC exposed. The SMB banner directly identifies the host as **Windows 7
 
 ---
 
-## Exploitation — MS17-010 (EternalBlue)
+## Foothold — MS17-010 (EternalBlue)
 
 Metasploit was used to confirm and exploit the vulnerability:
 
@@ -129,6 +141,12 @@ nt authority\system
 
 ---
 
+## Privilege Escalation
+
+The EternalBlue exploit executes its payload in the context of the SMB service, which runs as `NT AUTHORITY\SYSTEM`. The Meterpreter session therefore lands with full SYSTEM privileges immediately — there is no separate privilege-escalation step on this box, and both flags are read directly from the resulting shell.
+
+---
+
 ## Flags
 
 ```
@@ -149,11 +167,11 @@ dir C:\Users
 
 C:\Windows\system32>type C:\Users\haris\Desktop\user.txt
 type C:\Users\haris\Desktop\user.txt
-6c89ecd17fe0e78741bf0a40ce8b5497
+<redacted>
 
 C:\Windows\system32>type C:\Users\Administrator\Desktop\root.txt
 type C:\Users\Administrator\Desktop\root.txt
-0e773efd89c305283e03ea4bfd43d09e
+<redacted>
 ```
 
 Both `user.txt` and `root.txt` retrieved from the SYSTEM shell.
