@@ -6,13 +6,28 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Fluffy is an "assumed breach" Active Directory box — a low-privilege domain credential (`j.fleischman`) is provided up front. That account has read/write access to a non-default `IT` share containing an upgrade notice PDF listing several recently-disclosed CVEs, one of which — **CVE-2025-24071**, a flaw in how Windows Explorer handles `.library-ms` files inside archives — is directly exploitable from that same share. Dropping a crafted `.zip` into the share while running Responder captures a NetNTLMv2 hash for a second user, `p.agila`, the moment it's extracted on the DC. That hash cracks instantly against `rockyou.txt`. BloodHound then reveals `p.agila` is a member of `Service Account Managers`, which holds `GenericAll` over the `Service Accounts` group, which in turn holds `GenericWrite` over three service accounts (`ca_svc`, `ldap_svc`, `winrm_svc`). Adding `p.agila` into `Service Accounts` inherits that `GenericWrite`, enabling a Shadow Credentials attack against `winrm_svc` — a member of `Remote Management Users` — for a WinRM shell and the user flag. The same technique against `ca_svc` yields its NT hash, and `certipy find -vulnerable` shows the entire CA suffers from **ESC16** (the security extension is globally disabled). Since `ca_svc` can write its own `userPrincipalName`, temporarily setting it to `administrator`, requesting a certificate, and reverting the UPN yields a certificate that authenticates as the domain Administrator — giving an Administrator WinRM shell and the root flag.
 
+## Skills Required
+
+- Basic Active Directory enumeration from a provided low-privilege account (SMB shares, LDAP, BloodHound).
+- Understanding of NTLM authentication and NetNTLMv2 hash capture/cracking (Responder, hashcat).
+- Reading Windows ACLs and nested group memberships to find a privilege path.
+- Familiarity with AD CS (Active Directory Certificate Services) and certificate-based authentication.
+
+## Skills Learned
+
+- Exploiting **CVE-2025-24071**: a crafted `.library-ms` file inside a ZIP coerces Windows Explorer into an SMB authentication, leaking a NetNTLMv2 hash the moment the archive is extracted.
+- Chaining nested-group ACLs (`GenericAll` -> `GenericWrite`) by adding yourself to a group to inherit its write rights.
+- **Shadow Credentials**: writing `msDS-KeyCredentialLink` to obtain a certificate and PKINIT-authenticate as a target account.
+- **AD CS ESC16**: abusing a CA whose Security Extension is globally disabled by temporarily setting a controlled account's `userPrincipalName` to `administrator` to mint an authenticating certificate.
+- Working around Kerberos clock skew during certificate/PKINIT authentication.
+
 ---
 
-## Recon
+## Enumeration
 
 ### Nmap
 
@@ -259,7 +274,7 @@ Same shares as `j.fleischman`, and no WinRM access — this account's value was 
 
 ---
 
-## Enumeration — BloodHound
+## Lateral Movement — BloodHound Analysis
 
 ```
 ┌─[machines_eu-dedivip-1]─[10.10.15.26]─[darkangel3007@parrot]─[~/htb/in-progress/machines/fluffy]
@@ -300,7 +315,7 @@ FLUFFY\winrm_svc
 
 ---
 
-## User — Shadow Credentials Against `winrm_svc`
+### Shadow Credentials against `winrm_svc` (user.txt)
 
 `GenericWrite` over a user object allows adding a Shadow Credential (`msDS-KeyCredentialLink`) — an attacker-supplied certificate-backed logon key — without ever touching the account's real password. Certipy's `shadow auto` handles key-credential injection, PKINIT authentication, and NT hash retrieval in one command.
 
@@ -406,7 +421,7 @@ Mode                LastWriteTime         Length Name
 
 ---
 
-## Root — `ca_svc` Shadow Credentials → ADCS ESC16
+## Privilege Escalation — `ca_svc` Shadow Credentials → ADCS ESC16
 
 `ca_svc` was still sitting on the same `GenericWrite` list from `Service Accounts` membership, and its name strongly suggested a tie to Active Directory Certificate Services — worth compromising and pointing at the CA directly.
 
