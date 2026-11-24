@@ -1,5 +1,5 @@
 +++
-title = "HTB Challenge: Bypass"
+title = "Bypass"
 date = 2026-08-20T20:49:47+01:00
 draft = false
 tags = ["challenge", "Easy"]
@@ -7,6 +7,7 @@ categories = ["HTB"]
 [params]
   os = ""
   difficulty = "Easy"
+  category = "Reversing"
   techniques = ".NET/Mono binary identification, IL disassembly/reassembly (`monodis`/`ilasm`), IL-level logic patching (always-true return, unconditional branch removal)"
 +++
 {{< boxinfo difficulty="Easy" type="Challenge" techniques=".NET/Mono binary identification, IL disassembly/reassembly (`monodis`/`ilasm`), IL-level logic patching (always-true return, unconditional branch removal)" >}}
