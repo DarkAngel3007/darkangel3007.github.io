@@ -6,15 +6,30 @@
 
 ---
 
-## Overview
+## Synopsis
 
 Blackfield is a Windows Domain Controller for `BLACKFIELD.local`. A null SMB session against the `profiles$` share leaks several hundred usernames, one of which (`support`) has Kerberos pre-authentication disabled and falls to AS-REP roasting. The cracked `support` credentials don't give direct access to anything interesting, but BloodHound reveals `support` holds `ForceChangePassword` rights over another account, `audit2020` — abused over RPC with `rpcclient` to set a known password without needing the original. `audit2020` can read a `forensic` share containing an LSASS memory dump, which `pypykatz` parses to recover the NT hash for `svc_backup`. That account is a member of **Backup Operators**, granting `SeBackupPrivilege` over WinRM — used via `diskshadow` to mount a Volume Shadow Copy of `C:\` and pull a readable copy of `ntds.dit` and the `SYSTEM` registry hive off the locked, live database. `secretsdump.py` dumps every domain hash offline, including the Administrator's, and a straight pass-the-hash login over WinRM finishes the box.
 
 ![nmap scan results](images/nmap_results.png)
 
+## Skills Required
+
+- SMB enumeration, including anonymous/null sessions against a domain controller.
+- Understanding of Kerberos pre-authentication and AS-REP roasting.
+- Reading Active Directory DACLs / BloodHound edges to find privilege paths.
+- Familiarity with Windows privileges (`SeBackupPrivilege`) and pass-the-hash authentication.
+
+## Skills Learned
+
+- Harvesting a domain username list from a null SMB session on the `profiles$` share and feeding it into an AS-REP roast.
+- Abusing a `ForceChangePassword` DACL edge over RPC (`rpcclient setuserinfo2`) to take over an account without its current password.
+- Treating an exposed LSASS memory dump as a credential store, recovering NT hashes offline with `pypykatz`.
+- Abusing **Backup Operators** / `SeBackupPrivilege` via `diskshadow` to snapshot a Volume Shadow Copy and exfiltrate the locked `ntds.dit` and `SYSTEM` hive.
+- Dumping every domain hash offline with `secretsdump.py` and finishing via pass-the-hash — using the correct NT field, not the LM placeholder.
+
 ---
 
-## Recon
+## Enumeration
 
 ### Nmap
 
