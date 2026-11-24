@@ -1,6 +1,6 @@
 # Hugo configuration for the HTB writeups site (PaperMod theme).
 # baseURL is the ONLY line that depends on where the site is hosted — see README-site.md.
-baseURL = "https://darkangel3007.github.io/HTB-Writeups/"
+baseURL = "https://darkangel3007.github.io/"
 languageCode = "en-us"
 title = "darkangel3007 — HTB Writeups"
 theme = "PaperMod"
@@ -67,7 +67,7 @@ pygmentsUseClasses = true      # syntax highlighting via CSS classes (theme-awar
 
   [[params.socialIcons]]
     name = "github"
-    url = "https://github.com/darkangel3007/HTB-Writeups"
+    url = "https://github.com/darkangel3007/darkangel3007.github.io"
 
 [menu]
   [[menu.main]]

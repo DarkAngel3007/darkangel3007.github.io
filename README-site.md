@@ -3,7 +3,7 @@
 This repo doubles as a Hugo site (PaperMod theme) that publishes the **retired** writeups.
 
 ## Local preview
-    ~/htb/.tools/hugo server -D      # http://localhost:1313/HTB-Writeups/
+    ~/htb/.tools/hugo server -D      # http://localhost:1313/
 
 ## Build
     ~/htb/.tools/hugo --gc --minify
