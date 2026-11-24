@@ -1,0 +1,52 @@
+{{- define "main" }}
+
+{{- $posts := where site.RegularPages "Section" "posts" }}
+{{- $machines := where $posts "Params.tags" "intersect" (slice "machine") }}
+{{- $challenges := where $posts "Params.tags" "intersect" (slice "challenge") }}
+{{- $fortresses := where $posts "Params.tags" "intersect" (slice "fortress") }}
+
+<section class="home-bio">
+  {{- with site.Params.homeAvatar }}
+  <img class="home-avatar" src="{{ . | relURL }}" alt="avatar" loading="lazy" />
+  {{- end }}
+  <div class="home-bio-text">
+    {{ .Content }}
+    <div class="home-bio-links">
+      <a href="{{ "posts/" | relURL }}">All writeups</a>
+      <a href="{{ "tags/machine/" | relURL }}">Machines</a>
+      <a href="{{ "tags/challenge/" | relURL }}">Challenges</a>
+      <a href="{{ "search/" | relURL }}">Search</a>
+    </div>
+    <p class="home-bio-stats">
+      <strong>{{ len $posts }}</strong> {{ cond (eq (len $posts) 1) "writeup" "writeups" }} ·
+      <strong>{{ len $machines }}</strong> {{ cond (eq (len $machines) 1) "machine" "machines" }} ·
+      <strong>{{ len $challenges }}</strong> {{ cond (eq (len $challenges) 1) "challenge" "challenges" }}
+      {{- if $fortresses }} · <strong>{{ len $fortresses }}</strong> {{ cond (eq (len $fortresses) 1) "fortress" "fortresses" }}{{ end }}
+    </p>
+  </div>
+</section>
+
+<h2 class="home-section-title">Recent writeups</h2>
+<div class="home-recent">
+  {{- range first 6 $posts }}
+  <article class="post-entry">
+    <header class="entry-header">
+      <h2 class="entry-hint-parent">{{ .Title }}</h2>
+    </header>
+    <div class="entry-content">
+      <p>{{ .Summary | plainify | htmlUnescape | truncate 140 }}</p>
+    </div>
+    <footer class="entry-footer">
+      {{ .Date.Format "Jan 2, 2006" }}
+      {{- range (first 3 .Params.tags) }} <span class="home-tag">{{ . }}</span>{{ end }}
+    </footer>
+    <a class="entry-link" aria-label="post link to {{ .Title | plainify }}" href="{{ .Permalink }}"></a>
+  </article>
+  {{- end }}
+</div>
+
+<p class="home-browse-all">
+  <a href="{{ "posts/" | relURL }}">Browse all {{ len $posts }} writeups →</a>
+</p>
+
+{{- end }}
