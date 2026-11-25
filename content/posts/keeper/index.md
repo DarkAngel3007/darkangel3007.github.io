@@ -1,6 +1,6 @@
 +++
 title = "Keeper"
-date = 2026-11-25T14:10:00+00:00
+date = 2026-11-25T12:00:00+00:00
 draft = false
 tags = ["machine", "Linux", "Easy"]
 categories = ["HTB"]
