@@ -1,6 +1,6 @@
 +++
 title = "Eighteen"
-date = 2026-11-26T04:30:00+00:00
+date = 2026-11-26T04:28:52+00:00
 draft = false
 tags = ["machine", "Windows", "Easy"]
 categories = ["HTB"]
