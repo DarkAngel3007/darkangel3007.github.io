@@ -1,6 +1,6 @@
 +++
 title = "Agile"
-date = 2026-11-26T17:00:00+00:00
+date = 2026-11-26T16:43:00+00:00
 draft = false
 tags = ["machine", "Linux", "Medium"]
 categories = ["HTB"]
