@@ -81,6 +81,11 @@ pygmentsUseClasses = true      # syntax highlighting via CSS classes (theme-awar
     url = "/tags/challenge/"
     weight = 20
   [[menu.main]]
+    identifier = "cheatsheet"
+    name = "Cheatsheet"
+    url = "/cheatsheet/"
+    weight = 25
+  [[menu.main]]
     identifier = "tags"
     name = "Tags"
     url = "/tags/"
