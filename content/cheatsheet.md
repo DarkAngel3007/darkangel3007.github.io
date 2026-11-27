@@ -12,7 +12,7 @@ Active Directory and ADCS, plus vi/tmux. Replace `$IP`, `$DOMAIN` and credential
 
 ---
 
-## Text processing / field extraction (terminal-fu)
+## Text processing / field extraction
 
 **The recurring task: "pull just column X out of this messy output into a clean list."**
 Mental model — pick the tool by how the data is split:
@@ -98,8 +98,6 @@ tail -n +2 data.csv | cut -d',' -f3
 # build a numeric wordlist (port fuzzing etc.)
 seq 0 65535 > ports.txt        # or inline: -w <(seq 0 65535)
 ```
-
-> 📚 Want to *drill* this until it's muscle memory? Say **"let's work on terminal fu"** and I'll run a lesson from `~/htb/terminal-fu/` (see its README).
 
 ---
 
